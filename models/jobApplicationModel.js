@@ -22,7 +22,7 @@ const JobApplicationModel = new Schema({
   applicationStatus: {
     //e.g., Submitted, Under Review, Rejected, Accepted)
     type: String,
-    required: true,
+    default: "Submitted",
   },
   applicationDate: {
     type: Date,
