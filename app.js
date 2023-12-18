@@ -1,6 +1,7 @@
 const express = require("express");
 const { connectToMongoDB } = require("./config/db");
 const jobsRoute = require("./routes/jobsRoutes");
+const jobsApplicationRoute = require("./routes/jobApplicationRoutes");
 require("dotenv").config();
 
 const PORT = process.env.PORT;
@@ -10,6 +11,7 @@ connectToMongoDB();
 
 app.use(express.json());
 app.use("/jobs", jobsRoute);
+app.use("/job-applications", jobsApplicationRoute);
 
 app.get("/", (req, res) => {
   res.send("Home Page!");
