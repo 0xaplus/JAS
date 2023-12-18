@@ -17,6 +17,19 @@ jobsRoute.get("/", (req, res) => {
     });
 });
 
+//READ by Id
+jobsRoute.get('/:id', (req, res) => {
+    const id = req.params.id;
+
+    jobsModel.findById(id)
+        .then((job) => {
+            res.status(200).send(job);
+        })
+        .catch((err) => {
+            res.status(404).send(err);
+        });
+})
+
 //CREATE
 jobsRoute.post("/new", (req, res) => {
   const newJob = req.body;
