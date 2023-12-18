@@ -12,7 +12,6 @@ jobsRoute.get("/", (req, res) => {
       res.status(200).send(jobs);
     })
     .catch((err) => {
-      console.log(err);
       res.status(500).send(err);
     });
 });
@@ -26,7 +25,7 @@ jobsRoute.get('/:id', (req, res) => {
             res.status(200).send(job);
         })
         .catch((err) => {
-            res.status(404).send(err);
+            res.status(404).send({message: "Not Found.", err});
         });
 })
 
@@ -47,22 +46,25 @@ jobsRoute.post("/new", (req, res) => {
 });
 
 //UPDATE
-jobsRoute.put("/:id", (req, res) => {
-  const id = req.params.id;
-  const job = req.body; //Job to update with
+jobsRoute.put("/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const job = req.body; // Job to update with
 
-  //update job in DB
-  jobsModel
-    .findByIdAndUpdate(id, job, { new: true }) //{ new: true} makes the res.send return the updated job
-    .then((job) => {
-      res.status(201).send(job);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(400).send(err);
-    });
+    const updatedJob = await jobsModel.findByIdAndUpdate(id, job, { new: true });
+
+    if (!updatedJob) {
+      return res.status(404).send({ message: "Job not found" });
+    };
+
+    res.status(200).send(updatedJob);
+  } catch (err) {
+    console.log(err);
+    res.status(400).send(err);
+  }
 });
 
+// DELETE
 jobsRoute.delete("/:id", (req, res) => {
   const id = req.params.id;
 
