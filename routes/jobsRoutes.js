@@ -4,45 +4,48 @@ const jobsModel = require("../models/jobsModel");
 const jobsRoute = express.Router();
 
 //READ
-jobsRoute.get("/", (req, res) => {
-  // return all jobs in DB
-  jobsModel
-    .find({})
-    .then((jobs) => {
-      res.status(200).send(jobs);
-    })
-    .catch((err) => {
-      res.status(500).send(err);
-    });
+jobsRoute.get("/", async (req, res) => {
+  try {
+    const allJobs = await jobsModel.find({})
+    res.status(200).send(allJobs);
+  } catch (error) {
+    res.status(500).send(error);
+  }
 });
 
 //READ by Id
-jobsRoute.get('/:id', (req, res) => {
+jobsRoute.get('/:id', async (req, res) => {
+  try {
     const id = req.params.id;
+    const foundJob = await jobsModel.findById(id);
 
-    jobsModel.findById(id)
-        .then((job) => {
-            res.status(200).send(job);
-        })
-        .catch((err) => {
-            res.status(404).send({message: "Not Found.", err});
-        });
-})
+    if (!foundJob) {
+      res.status(404).send({message: "Job Not Found."});
+      return;
+    };
+
+    res.status(200).send(foundJob);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
 
 //CREATE
-jobsRoute.post("/new", (req, res) => {
+jobsRoute.post("/new", async (req, res) => {
   const newJob = req.body;
 
-  //create new job in DB
-  jobsModel
-    .create(newJob)
-    .then((newJob) => {
-      res.status(201).send(newJob);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).send(err);
-    });
+  try {
+    // Checks if the newJob sent is empty
+    if(Object.keys(newJob).length === 0) {
+      res.status(400).send({ message: "Bad Request - Request body is missing or empty" });
+      return;
+    };
+
+    const jobCreated = await jobsModel.create(newJob);
+    res.status(201).send(jobCreated);
+  } catch (error) {
+    res.status(500).send(error);
+  };
 });
 
 //UPDATE
@@ -65,21 +68,24 @@ jobsRoute.put("/:id", async (req, res) => {
 });
 
 // DELETE
-jobsRoute.delete("/:id", (req, res) => {
-  const id = req.params.id;
+jobsRoute.delete("/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
 
-  //delete job by id
-  jobsModel
-    .findByIdAndDelete(id) //{ new: true} makes the res.send return the updated job
-    .then(() => {
-      res.status(200).send({
-        message: "Deleted successfully",
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(400).send(err);
+    //delete job by id
+    const jobToDel = await jobsModel.findByIdAndDelete(id);
+    
+    if (!jobToDel) {
+      return res.status(404).send({ message: "Job not found" });
+    };
+
+    res.status(200).send({
+      message: "Deleted successfully"
     });
+  } catch (error) {
+    console.log(error);
+    res.status(400).send(error);
+  }
 });
 
 module.exports = jobsRoute;
