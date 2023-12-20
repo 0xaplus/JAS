@@ -1,9 +1,8 @@
-const express = require('express');
-const { ObjectId } = require('mongoose').Types;
+const jobsApplicationRoute = require('express').Router();
 const jobApplicationModel = require('../models/jobApplicationModel');
 const jobListingModel = require('../models/jobsModel')
+const { ObjectId } = require('mongoose').Types;
 
-const jobsApplicationRoute = express.Router();
 
 // Authorisation
 

@@ -1,7 +1,5 @@
-const express = require("express");
+const jobsRoute = require("express").Router();
 const jobsController = require("../controllers/jobs.controller");
-
-const jobsRoute = express.Router();
 
 jobsRoute.get("/", jobsController.getAllJobs);
 jobsRoute.get("/:id", jobsController.getJobByID);
