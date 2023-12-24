@@ -10,6 +10,8 @@ const app = express();
 connectToMongoDB();
 
 app.use(express.json());
+
+// change to /api/v1/jobs later
 app.use("/jobs", jobsRoute);
 app.use("/jobs", jobsApplicationRoute);
 
