@@ -11,7 +11,7 @@ connectToMongoDB();
 
 app.use(express.json());
 app.use("/jobs", jobsRoute);
-app.use("/job-applications", jobsApplicationRoute);
+app.use("/jobs", jobsApplicationRoute);
 
 app.get("/", (req, res) => {
   res.send("Home Page!");
