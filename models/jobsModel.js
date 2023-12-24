@@ -32,6 +32,10 @@ const JobListingsModel = new Schema({
     type: Date,
     default: Date.now,
   },
+  applications: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "JobApplication"
+  }]
 });
 
 module.exports = mongoose.model("JobListing", JobListingsModel);
