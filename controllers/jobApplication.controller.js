@@ -1,61 +1,69 @@
 const jobApplicationModel = require('../models/jobApplicationModel');
+const jobListingModel = require('../models/jobsModel')
 const { ObjectId } = require('mongoose').Types;
 
-//  READ all jobs application made to a particular Job
-function getAllJobsApplication(req, res) {
-    const id = req.params.id;
-    
-    jobApplicationModel.findById(id)
-        .then((aps) => { // applications
-        aps ? res.status(200).send(aps) : res.status(404).send({ message: 'Job application not found!' });
-        })
-        .catch((err) => {
-        res.status(500).send(err);
-        });
+//READ all job applications for a job by ID
+async function getJobApplications(req, res) {
+    try {
+        const jobListingId = req.params.jobListingId;
+        const foundJob = await jobListingModel.findById(jobListingId).populate('applications');
+
+        if (!foundJob) {
+            return res.status(404).send('Job not found');
+        }
+
+        const applications = foundJob.applications;
+        res.status(200).send(applications);
+    } catch (error) {
+        res.status(500).send(error);
+    }
 };
 
 // CREATE a job application
-function createJobApplication(req, res) {
-    const jobListingId = req.params.jobListingId;
-    const newAp = req.body;
-    const newJobApplication = new jobApplicationModel({ ...newAp, jobListing: new ObjectId(jobListingId) });
-    
-    jobListingModel.findById(jobListingId)
-     .then((job) => {
-        if (!job) {
-            res.status(404).send({message: "Job not found!"});
-            return;
-        } else {
+async function createJobApplication(req, res) {
+    try {
+        const jobListingId = req.params.jobListingId;
+        const foundJob = await jobListingModel.findById(jobListingId);
 
-            jobApplicationModel.create(newJobApplication)
-                .then((createdJobApplication) => {
-                    res.status(201).send(createdJobApplication);
-                })
-                .catch((err) => {
-                    res.status(500).send(err);
-                });
-        };
-     })
-     .catch(() => {
-        res.status(404).send('Not found!')
-     })
+        if (!foundJob) {
+            return res.status(404).send('Job not found');
+        }
+
+        const newApl = req.body;
+        const newJobApplication = new jobApplicationModel({ ...newApl, jobListing: new ObjectId(jobListingId) });
+        
+        const savedApplication = await newJobApplication.save();
+        foundJob.applications.push(savedApplication._id);
+        foundJob.save();
+
+        res.status(201).send(savedApplication);
+    } catch (error) {
+        res.status(500).send(error)
+    }
 };
 
 // UPDATE job application
-function updateJobApplication(req, res) {
-    const id = req.params.id;
-    const newAp = req.body;
-    const updatedApplication = { ...newAp, jobListing: new ObjectId(id)};
+async function updateJobApplication(req, res) {
+    try {
+        const jobListingId = req.params.jobListingId;
+        const applicationId = req.params.applicationId;
+        const updatedFields = req.body; // Assuming req.body contains the fields to be updated
 
-    jobApplicationModel
-        .findByIdAndUpdate(id, updatedApplication, {new: true})
-        .then((updatedApplication) => {
-            res.status(200).send(updatedApplication);
-        })
-        .catch((err) => {
-            res.status(500).send(err);
-        })
+        const result = await jobListingModel.updateOne(
+            { _id: jobListingId, "applications._id": applicationId },
+            { $set: { "applications.$": updatedFields } }
+        );
+
+        if (result.nModified === 1) {
+            res.status(200).send('Application updated successfully');
+        } else {
+            res.status(404).send('Job listing or application not found');
+        }
+    } catch (error) {
+        res.status(500).send(error);
+    }
 };
+
 
 // DELETE job application
 function deleteJobApplication(req, res) {
@@ -72,8 +80,9 @@ function deleteJobApplication(req, res) {
 }
 
 module.exports = {
-    getAllJobsApplication, 
+    getJobApplications, 
     createJobApplication,
     updateJobApplication,
-    deleteJobApplication
+    deleteJobApplication,
+    
 }
