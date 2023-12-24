@@ -3,7 +3,7 @@ require("mongoose-type-email");
 const Schema = mongoose.Schema;
 
 const JobApplicationModel = new Schema({
-  name: {
+  name: { 
     type: String,
     required: true,
   },
@@ -25,6 +25,10 @@ const JobApplicationModel = new Schema({
     default: "Submitted",
   },
   applicationDate: {
+    type: Date,
+    default: Date.now,
+  },
+  createdAt: {
     type: Date,
     default: Date.now,
   },
