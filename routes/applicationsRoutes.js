@@ -1,9 +1,10 @@
-const jobsApplicationRoute = require('express').Router();
-const jobApplicationCtrller = require('../controllers/applications.controller')
+const applicationRoute = require('express').Router();
+const applicationCtrller = require('../controllers/applications.controller')
 
-jobsApplicationRoute.get('/:jobListingId/applications', jobApplicationCtrller.getJobApplications);
-jobsApplicationRoute.post('/:jobListingId/applications', jobApplicationCtrller.createJobApplication);
-jobsApplicationRoute.put('/:jobListingId/applications/:applicationId', jobApplicationCtrller.updateJobApplication);
-jobsApplicationRoute.delete('/:id', jobApplicationCtrller.deleteJobApplication);
+applicationRoute.get('/:jobId/applications', applicationCtrller.getApplications);
+applicationRoute.get('/applications/:applicationId', applicationCtrller.getApplicationByID);
+applicationRoute.post('/:jobId/apply', applicationCtrller.createApplication);
+applicationRoute.put('/applications/:applicationId', applicationCtrller.updateApplicationByID);
+applicationRoute.delete('/applications/:applicationId', applicationCtrller.deleteApplicationByID);
 
-module.exports = jobsApplicationRoute; 
+module.exports = applicationRoute; 
