@@ -20,8 +20,8 @@ const JobApplicationModel = new Schema({
     contentType: String,
   },
   applicationStatus: {
-    //e.g., Submitted, Under Review, Rejected, Accepted)
     type: String,
+    enum: ['Submitted', 'Under Review', 'Rejected', 'Accepted'],
     default: "Submitted",
   },
   applicationDate: {
