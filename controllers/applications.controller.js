@@ -1,12 +1,18 @@
-const jobApplicationModel = require('../models/applicationsModel');
-const jobListingModel = require('../models/jobsModel')
+const applicationModel = require('../models/applicationsModel');
+const jobModel = require('../models/jobsModel');
 const { ObjectId } = require('mongoose').Types;
 
-//READ all job applications for a job by ID
-async function getJobApplications(req, res) {
+// File Uploads
+const multer = require('multer');
+const upload = multer({ dest: '../uploads/' });
+// const storage = multer.memoryStorage();
+// const upload = multer({ storage: storage });
+
+//GET all job applications for a job by ID
+async function getApplications(req, res) {
     try {
-        const jobListingId = req.params.jobListingId;
-        const foundJob = await jobListingModel.findById(jobListingId).populate('applications');
+        const jobId = req.params.jobId;
+        const foundJob = await jobModel.findById(jobId).populate('applications');
 
         if (!foundJob) {
             return res.status(404).send('Job not found');
@@ -19,70 +25,97 @@ async function getJobApplications(req, res) {
     }
 };
 
-// CREATE a job application
-async function createJobApplication(req, res) {
+// GET application by ID
+async function getApplicationByID(req, res) {
     try {
-        const jobListingId = req.params.jobListingId;
-        const foundJob = await jobListingModel.findById(jobListingId);
+        const applicationId = req.params.applicationId;
+        const foundJob = await applicationModel.findById(applicationId);
+    
+        if (!foundJob) {
+            res.status(404).send('Application not found!');
+            return
+        };
+    
+        res.status(200).send(foundJob);
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
+// CREATE a job application
+async function createApplication(req, res) {
+    try {
+        const jobId = req.params.jobId;
+        const foundJob = await jobModel.findById(jobId);
 
         if (!foundJob) {
             return res.status(404).send('Job not found');
         }
 
+        // const newJobApplication = new applicationModel({ ...newApl, job: new ObjectId(jobId) });
+        const uploadMiddleware = util.promisify(upload.fields([{ name: 'resume', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]));
+
+        await uploadMiddleware(req, res); // Use await to properly handle the asynchronous upload operation
+
         const newApl = req.body;
-        const newJobApplication = new jobApplicationModel({ ...newApl, jobListing: new ObjectId(jobListingId) });
-        
+        const resumeFile = req.files['resume'][0];
+        const coverLetterFile = req.files['coverLetter'][0];
+        console.log(req.files);
+
+        const newJobApplication = new applicationModel({
+            ...newApl,
+            jobListing: new ObjectId(jobId),
+            resume: {
+                data: resumeFile.buffer,
+                contentType: resumeFile.mimetype
+            },
+            coverLetter: {
+                data: coverLetterFile.buffer,
+                contentType: coverLetterFile.mimetype
+            }
+        });
+
         const savedApplication = await newJobApplication.save();
         foundJob.applications.push(savedApplication._id);
         foundJob.save();
-
         res.status(201).send(savedApplication);
     } catch (error) {
         res.status(500).send(error)
     }
 };
 
-// UPDATE job application
-async function updateJobApplication(req, res) {
+// UPDATE application by  ID
+async function updateApplicationByID(req, res) {
     try {
-        const jobListingId = req.params.jobListingId;
         const applicationId = req.params.applicationId;
-        const updatedFields = req.body; // Assuming req.body contains the fields to be updated
+        const updatedFields = req.body;
+        const updatedApl = await applicationModel.findByIdAndUpdate(applicationId, updatedFields, { new: true });
 
-        const result = await jobListingModel.updateOne(
-            { _id: new ObjectId(jobListingId), "applications._id": new ObjectId(applicationId) },
-            { $set: { "applications.$": updatedFields } }
-        );
+        if (!updatedApl) {
+            res.status(404).send('Application not found');
+            return
+        };
 
-        if (result.nModified === 1) {
-            res.status(200).send('Application updated successfully');
-        } else {
-            res.status(404).send('Job listing or application not found');
-        }
+        res.status(200).send(updatedApl);
     } catch (error) {
         res.status(500).send(error);
     }
 };
 
-
-// DELETE job application
-function deleteJobApplication(req, res) {
-    const id = req.body._id;
-
-    jobApplicationModel
-        .findByIdAndDelete(id)
-        .then(() => {
-            res.status(204);
-        })
-        .catch((err) => {
-            res.status(400).send(err);
-        })
-}
+// DELETE application by  ID
+async function deleteApplicationByID(req, res) {
+    try {
+        const id = req.params.applicationId;
+        const check = await applicationModel.findByIdAndDelete(id)
+        res.status(200).send('Application deleted successfully.');
+    } catch (error) {
+        res.status(400).send(error);
+    }
+};
 
 module.exports = {
-    getJobApplications, 
-    createJobApplication,
-    updateJobApplication,
-    deleteJobApplication,
-    
+    getApplications, getApplicationByID,
+    createApplication,
+    updateApplicationByID,
+    deleteApplicationByID,
 }
