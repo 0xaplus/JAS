@@ -59,6 +59,40 @@ app.get('/signup', (req, res) => {
   res.render('signup');
 });
 
+// handles the signup request for new users
+app.post('/signup', (req, res) => {
+  const user = req.body;
+  userModel.register(new userModel({ username: user.username }), user.password, (err, user) => {
+      if (err) {
+          console.log(err);
+          res.status(400).send(err);
+      } else {
+          passport.authenticate('local')(req, res, () => {
+              res.redirect("/books")
+          });
+      }
+  });
+});
+
+
+// handles the login request for existing users
+app.post('/login', passport.authenticate('local', { failureRedirect: '/' }), (req, res) => {
+  res.redirect('/books');
+});
+
+//catch errors middleware
+app.use((err, req, res, next) => {
+  console.log(err);
+  res.status(500).send('Something broke!');
+});
+
+// handles the logout request
+app.post('/logout', (req, res) => {
+  req.logout();
+  res.redirect('/');
+});
+
+
 app.listen(PORT, () => {
   console.log("Server is listening on PORT", PORT);
 });
