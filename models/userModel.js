@@ -3,10 +3,10 @@ const Schema = mongoose.Schema
 const passportLocalMongoose = require('passport-local-mongoose');
 
 const UserModel = new Schema({
-    email: {
-        type: mongoose.SchemaTypes.Email,
+    username: {
+        type: String,
         required: true,
-        unique: true,
+        unique: true
     },
     password: {
         type: String,
