@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JAS | Jobs</title>
+  </head>
+  <body>
+    <% if (user) { %>
+    <p>Welcome to JAS!, <%= user.username%></p>
+    <p>Below is a list of all available jobs</p>
+    <ul>
+      <% allJobs.forEach(function(job) { %>
+      <li>Title: <%= job.title %></li>
+      <li>Description: <%= job.description %></li>
+      <li>Requirements: <%= job.requirements %></li>
+      <li>Deadline: <%= job.deadline %></li>
+      <% }); %>
+    </ul>
+    <br />
+    <form action="/logout" method="post">
+      <button type="submit">Logout</button>
+    </form>
+
+    <% } else { %>
+    <p>Please <a href="/login">login</a> to view the Job Listings</p>
+    <% } %>
+  </body>
+</html>
