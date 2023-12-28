@@ -4,7 +4,8 @@ const jobsModel = require('../models/jobsModel');
 async function getAllJobs(req, res) {
     try {
       const allJobs = await jobsModel.find({})
-      res.status(200).send(allJobs);
+      // res.status(200).send(allJobs);
+      res.render("jobs", { user: req.user, allJobs }); //To render it
     } catch (error) {
       res.status(500).send(error);
     }
