@@ -2,11 +2,11 @@ const express = require("express");
 const { connectToMongoDB } = require("./config/db");
 const jobsRoute = require("./routes/jobsRoutes");
 const applicationRoute = require("./routes/applicationsRoutes");
-const userModel = require('./models/userModel');
+const userModel = require("./models/userModel");
 
-const passport = require('passport');  // authentication
-const connectEnsureLogin = require('connect-ensure-login'); //authorization middleware
-const session = require('express-session');  //session middleware
+const passport = require("passport"); // authentication
+const connectEnsureLogin = require("connect-ensure-login"); //authorization middleware
+const session = require("express-session"); //session middleware
 require("dotenv").config();
 
 const PORT = process.env.PORT;
@@ -16,13 +16,14 @@ connectToMongoDB();
 
 app.use(express.json());
 
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: true,
-  cookie: { maxAge: 60 * 60 * 1000 } // 1 hour
-}));
-
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 60 * 60 * 1000 }, // 1 hour
+  })
+);
 
 app.use(passport.initialize()); // initialize passport middleware
 app.use(passport.session()); // use passport session middleware
@@ -33,8 +34,8 @@ passport.use(userModel.createStrategy()); // use the user model to create the st
 passport.serializeUser(userModel.serializeUser());
 passport.deserializeUser(userModel.deserializeUser());
 
-app.set('views', 'views');
-app.set('view engine', 'ejs');
+app.set("views", "views");
+app.set("view engine", "ejs");
 
 // Parse URL-encoded bodies (as sent by HTML forms)
 app.use(express.urlencoded({ extended: true }));
@@ -42,56 +43,62 @@ app.use(express.urlencoded({ extended: true }));
 // Parse multipart/form-data
 // app.use(express.multipart({ uploadDir: __dirname + '/uploads' }));
 
-// change to /api/v1/jobs later
-app.use("/jobs", jobsRoute);
-app.use("/jobs", applicationRoute);
+app.use("/jobs", connectEnsureLogin.ensureLoggedIn(), jobsRoute);
+app.use("/jobs", connectEnsureLogin.ensureLoggedIn(), applicationRoute);
 
 app.get("/", (req, res) => {
-  res.render('index');
+  res.render("index");
 });
 
-app.get('/login', (req, res) => {
-  res.render('login');
+app.get("/login", (req, res) => {
+  res.render("login");
 });
 
-// renders the signup page
-app.get('/signup', (req, res) => {
-  res.render('signup');
+app.get("/signup", (req, res) => {
+  res.render("signup");
 });
 
 // handles the signup request for new users
-app.post('/signup', (req, res) => {
+app.post("/signup", (req, res) => {
   const user = req.body;
-  userModel.register(new userModel({ username: user.username }), user.password, (err, user) => {
-      if (err) {
-          console.log(err);
-          res.status(400).send(err);
-      } else {
-          passport.authenticate('local')(req, res, () => {
-              res.redirect("/books")
-          });
-      }
+  const newUser = new userModel({ username: user.username });
+
+  userModel.register(newUser, user.password, (err) => {
+    if (err) {
+      console.log(err.message);
+      res.status(400).send(err);
+    } else {
+      passport.authenticate("local")(req, res, () => {
+        res.redirect("/jobs");
+      });
+    }
   });
 });
 
+// handles login
+app.post(
+  "/login",
+  passport.authenticate("local", { failureRedirect: "/login" }),
+  (req, res) => {
+    res.redirect("/jobs");
+  }
+);
 
-// handles the login request for existing users
-app.post('/login', passport.authenticate('local', { failureRedirect: '/' }), (req, res) => {
-  res.redirect('/books');
+// handles logout
+app.post("/logout", function (req, res) {
+  req.logout((err) => {
+    if (err) {
+      res.status(500).send(err);
+    }
+    res.redirect("/"); // home page
+  });
 });
 
 //catch errors middleware
 app.use((err, req, res, next) => {
   console.log(err);
-  res.status(500).send('Something broke!');
+  res.status(500).send("Something broke!");
 });
-
-// handles the logout request
-app.post('/logout', (req, res) => {
-  req.logout();
-  res.redirect('/');
-});
-
 
 app.listen(PORT, () => {
   console.log("Server is listening on PORT", PORT);
