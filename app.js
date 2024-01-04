@@ -113,3 +113,13 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log("Server is listening on PORT", PORT);
 });
+
+// unhandled promise rejection
+process.on("unhandledRejection", (err) => {
+  console.log(`Shutting down the server for ${err.message}`);
+  console.log(`shutting down the server for unhandle promise rejection`);
+
+  server.close(() => {
+    process.exit(1);
+  });
+});
