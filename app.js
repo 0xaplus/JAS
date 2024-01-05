@@ -37,7 +37,7 @@ passport.deserializeUser(userModel.deserializeUser());
 app.set("views", "views");
 app.set("view engine", "ejs");
 
-// const upload = require('./routes/upload');
+const upload = require('./routes/upload');
 
 // Parse URL-encoded bodies (as sent by HTML forms)
 app.use(express.urlencoded({ extended: true }));
@@ -93,7 +93,7 @@ app.post("/logout", function (req, res) {
   });
 });
 
-/*
+
 app.get('/upload', (_, res) => {
   res.render('upload')
 })
@@ -102,7 +102,7 @@ app.get('/upload', (_, res) => {
 app.post('/upload', upload.single('file'), (req, res) => {
   res.render('upload', {message: 'File uploaded successfully!'})
 })
-*/
+
 
 //catch errors middleware
 app.use((err, req, res, next) => {
